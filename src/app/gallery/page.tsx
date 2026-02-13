@@ -55,7 +55,7 @@ export default function GalleryPage() {
     const { data, error } = await supabase
       .from('files')
       .select('*')
-      .in('file_type', ['image'])
+      .like('file_type', 'image/%')
       .order('created_at', { ascending: false })
 
     if (error) {
