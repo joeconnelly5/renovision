@@ -55,13 +55,13 @@ export default function GalleryPage() {
     const { data, error } = await supabase
       .from('files')
       .select('*')
-      .like('file_type', 'image/%')
       .order('created_at', { ascending: false })
 
     if (error) {
       toast({ title: 'Error', description: 'Failed to load photos', variant: 'destructive' })
     } else {
-      setFiles(data || [])
+      const imageFiles = (data || []).filter((f: FileRecord) => f.file_type?.startsWith('image/'))
+      setFiles(imageFiles)
     }
     setLoading(false)
   }, [toast])
