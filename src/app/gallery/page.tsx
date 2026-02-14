@@ -51,20 +51,26 @@ export default function GalleryPage() {
   const { toast } = useToast()
 
   const fetchFiles = useCallback(async () => {
-    const supabase = createBrowserClient()
-    const { data, error } = await supabase
-      .from('files')
-      .select('*')
-      .order('created_at', { ascending: false })
+    try {
+      const supabase = createBrowserClient()
+      const { data, error } = await supabase
+        .from('files')
+        .select('*')
+        .order('created_at', { ascending: false })
 
-    if (error) {
-      toast({ title: 'Error', description: 'Failed to load photos', variant: 'destructive' })
-    } else {
-      const imageFiles = (data || []).filter((f: FileRecord) => f.file_type?.startsWith('image/'))
-      setFiles(imageFiles)
+      if (error) {
+        console.error('Failed to load photos:', error)
+      } else {
+        const imageFiles = (data || []).filter((f: FileRecord) => f.file_type?.startsWith('image/'))
+        setFiles(imageFiles)
+      }
+    } catch (err) {
+      console.error('Failed to load photos:', err)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
-  }, [toast])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     fetchFiles()
