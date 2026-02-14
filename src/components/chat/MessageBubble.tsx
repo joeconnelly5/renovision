@@ -16,6 +16,8 @@ interface MessageBubbleProps {
 
 function formatMarkdown(text: string): string {
   let html = text
+    // Images (markdown syntax)
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="rounded-lg my-3 max-w-full" />')
     // Headers
     .replace(/^### (.+)$/gm, '<h3 class="text-base font-semibold mt-3 mb-1">$1</h3>')
     .replace(/^## (.+)$/gm, '<h2 class="text-lg font-semibold mt-3 mb-1">$1</h2>')

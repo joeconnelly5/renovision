@@ -162,13 +162,68 @@ export function ChatInterface() {
         }
       }
 
-      // Add assistant message
-      const assistantMessage: LocalMessage = {
-        role: 'assistant',
-        content: fullText,
-        created_at: new Date().toISOString(),
+      // Check for image generation tags
+      const imageTagRegex = /\[GENERATE_IMAGE\s+room="([^"]*)"(?:\s+style="([^"]*)")?\]([\s\S]*?)\[\/GENERATE_IMAGE\]/g
+      const imageMatch = imageTagRegex.exec(fullText)
+
+      let displayText = fullText
+      if (imageMatch) {
+        const [fullTag, room, style, prompt] = imageMatch
+        displayText = fullText.replace(fullTag, '🎨 *Generating rendering...*')
+
+        // Add assistant message with placeholder
+        const assistantMessage: LocalMessage = {
+          role: 'assistant',
+          content: displayText,
+          created_at: new Date().toISOString(),
+        }
+        setMessages((prev) => [...prev, assistantMessage])
+
+        // Call image generation API
+        try {
+          const imgResponse = await fetch('/api/ai/generate-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: prompt.trim(), room, style }),
+          })
+
+          if (imgResponse.ok) {
+            const imgData = await imgResponse.json()
+            const imageUrl = imgData.public_url
+            // Update the message to include the generated image
+            const finalText = fullText.replace(fullTag, `\n\n![Generated rendering of ${room}](${imageUrl})\n\n*AI-generated rendering saved to your Gallery.*`)
+            setMessages((prev) => {
+              const updated = [...prev]
+              updated[updated.length - 1] = {
+                ...updated[updated.length - 1],
+                content: finalText,
+                image_urls: [imageUrl],
+              }
+              return updated
+            })
+          } else {
+            const finalText = fullText.replace(fullTag, '\n\n*Image generation failed. Please try again.*')
+            setMessages((prev) => {
+              const updated = [...prev]
+              updated[updated.length - 1] = {
+                ...updated[updated.length - 1],
+                content: finalText,
+              }
+              return updated
+            })
+          }
+        } catch (imgError) {
+          console.error('Image generation error:', imgError)
+        }
+      } else {
+        // Add assistant message normally
+        const assistantMessage: LocalMessage = {
+          role: 'assistant',
+          content: fullText,
+          created_at: new Date().toISOString(),
+        }
+        setMessages((prev) => [...prev, assistantMessage])
       }
-      setMessages((prev) => [...prev, assistantMessage])
     } catch (error: unknown) {
       if (error instanceof Error && error.name !== 'AbortError') {
         console.error('Chat error:', error)

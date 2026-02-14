@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       .insert({
         filename,
         storage_path: storagePath,
-        file_type: 'image',
+        file_type: 'image/png',
         category: 'rendering',
         room: room || 'general',
         notes: prompt,
