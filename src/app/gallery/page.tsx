@@ -1,5 +1,6 @@
 'use client'
 
+// Gallery v2 — fixed file loading
 import { useEffect, useState, useCallback } from 'react'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { FileRecord } from '@/types'
